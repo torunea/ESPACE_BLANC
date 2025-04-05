@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESPACE BLANC</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+            font-weight: 300;
+        }
+        
+        body {
+            color: #333;
+            line-height: 1.4;
+            padding: 20px;
+            font-size: 14px;
+        }
+        
+        a {
+            text-decoration: none;
+            color: #333;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        /* ヘッダー */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding: 15px 20px;
+            background-color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        
+        .site-title {
+            font-weight: 100;
+            font-size: 18px;
+            letter-spacing: 0.8px;
+        }
+        
+        /* 検索ボックス */
+        .search-box {
+            border: 1px solid #eee;
+            padding: 5px 10px;
+            font-size: 13px;
+            width: 150px;
+            outline: none;
+            font-weight: 300;
+        }
+        
+        .search-box:focus {
+            border-color: #ddd;
+        }
+        
+        /* モザイクグリッド */
+        .mosaic-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-auto-rows: minmax(100px, auto);
+            grid-gap: 0;
+            margin-top: 80px;
+        }
+        
+        .tile {
+            border: 1px solid #eee;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            margin: 0;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .tile:hover {
+            background-color: #f9f9f9;
+        }
+        
+        /* サイズバリエーション */
+        .size-1 {
+            grid-column: span 3;
+            grid-row: span 1;
+        }
+        
+        .size-2 {
+            grid-column: span 4;
+            grid-row: span 2;
+        }
+        
+        .size-3 {
+            grid-column: span 5;
+            grid-row: span 1;
+        }
+        
+        .size-4 {
+            grid-column: span 6;
+            grid-row: span 1;
+        }
+        
+        .size-5 {
+            grid-column: span 3;
+            grid-row: span 2;
+        }
+        
+        .size-6 {
+            grid-column: span 6;
+            grid-row: span 2;
+        }
+        
+        .project-title {
+            font-size: 15px;
+            font-weight: 300;
+            margin-bottom: 10px;
+            letter-spacing: 0.3px;
+        }
+        
+        .project-content {
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            flex-grow: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 2行までに制限 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-height: 39px; /* 13px × 1.5 × 2行 */
+        }
+        
+        .tags {
+            font-size: 10px;
+            color: #999;
+            letter-spacing: 0.2px;
+        }
+        
+        .tags span {
+            margin-right: 10px;
+        }
+        
+        .date {
+            position: absolute;
+            bottom: 8px;
+            right: 10px;
+            font-size: 9px;
+            color: #aaa;
+            letter-spacing: 0.2px;
+        }
+        
+        /* ポップアップスタイル */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1500;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 300;
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+        
+        .modal-body {
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .modal-tags {
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-tags span {
+            margin-right: 15px;
+            color: #666;
+        }
+        
+        .modal-date {
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: 100;
+            cursor: pointer;
+            border: none;
+            background: none;
+            line-height: 1;
+        }
+        
+        /* レスポンシブデザイン */
+        @media (max-width: 768px) {
+            .mosaic-grid {
+                grid-template-columns: repeat(6, 1fr);
+                grid-gap: 0;
+            }
+            
+            .size-1, .size-2, .size-3, .size-4, .size-5, .size-6 {
+                grid-column: span 6;
+                grid-row: span 1;
+            }
+            
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 15px;
+            }
+            
+            .right-nav {
+                margin-top: 10px;
+                width: 100%;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1 class="site-title">ESPACE BLANC</h1>
+        <div class="right-nav">
+            <input type="text" class="search-box" id="search-input" placeholder="search...">
+        </div>
+    </header>
+    
+    <div class="mosaic-grid" id="content-grid">
+        <!-- コンテンツはJavaScriptで動的に生成されます -->
+        <div id="loading-message" style="grid-column: span 12; text-align: center; padding: 50px; color: #999;">
+            データを読み込んでいます...
+        </div>
+    </div>
+    
+    <!-- モーダルポップアップ -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <h2 class="modal-title" id="modal-title"></h2>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-tags" id="modal-tags"></div>
+            <div class="modal-date" id="modal-date"></div>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数
+        let allArticles = [];
+        const DATA_FILE_NAME = 'chair_data.xlsx'; // 同じフォルダ内のExcelファイル名
+        
+        // DOMが読み込まれた後に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            // ページ読み込み時に自動的にデータファイルを読み込む
+            loadExcelFile();
+            
+            // 検索機能
+            document.getElementById('search-input').addEventListener('input', handleSearch);
+            
+            // モーダル閉じるボタン
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            
+            // モーダル外側クリックで閉じる
+            document.getElementById('modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+        });
+        
+        // Excelファイルを読み込む関数
+        function loadExcelFile() {
+            fetch(DATA_FILE_NAME)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('ファイルが見つかりません');
+                    }
+                    return response.arrayBuffer();
+                })
+                .then(data => {
+                    const workbook = XLSX.read(new Uint8Array(data), {type: 'array'});
+                    
+                    // 最初のシートを取得
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    // シートをJSONに変換
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    // データ処理
+                    processExcelData(jsonData);
+                })
+                .catch(error => {
+                    console.error('ファイル読み込みエラー:', error);
+                    document.getElementById('loading-message').innerHTML = 
+                        `<p>データファイルの読み込みに失敗しました: ${error.message}</p>
+                         <p>ファイル名 "${DATA_FILE_NAME}" が同じフォルダにあることを確認してください。</p>`;
+                });
+        }
+        
+        // Excelデータを処理して表示する関数
+        function processExcelData(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('loading-message').textContent = 'エラー: 有効なデータがありません。';
+                return;
+            }
+            
+            // 読み込み中メッセージを削除
+            document.getElementById('loading-message').style.display = 'none';
+            
+            // グローバル変数に保存
+            allArticles = data;
+            
+            // データを日付で降順ソート（新しい順）
+            allArticles.sort((a, b) => {
+                // 日付フィールドがない場合は順序を維持
+                if (!a.日付 && !b.日付) return 0;
+                if (!a.日付) return 1;
+                if (!b.日付) return -1;
+                
+                // 文字列形式の日付を扱う
+                let dateA, dateB;
+                if (typeof a.日付 === 'string') {
+                    // YYYY.MM.DD形式またはその他の一般的な日付形式を処理
+                    dateA = new Date(a.日付.replace(/\./g, '-'));
+                } else {
+                    dateA = new Date(a.日付);
+                }
+                
+                if (typeof b.日付 === 'string') {
+                    dateB = new Date(b.日付.replace(/\./g, '-'));
+                } else {
+                    dateB = new Date(b.日付);
+                }
+                
+                return dateB - dateA; // 降順
+            });
+            
+            // 画面に表示
+            renderArticles(allArticles);
+        }
+        
+        // 記事を表示する関数
+        function renderArticles(articles) {
+            const grid = document.getElementById('content-grid');
+            // ローディングメッセージ以外の内容をクリア
+            Array.from(grid.children).forEach(child => {
+                if (child.id !== 'loading-message') {
+                    grid.removeChild(child);
+                }
+            });
+            
+            // サイズのパターン
+            const sizePatterns = ['size-2', 'size-3', 'size-1', 'size-4', 'size-5', 'size-3', 'size-6', 'size-1', 'size-2', 'size-4'];
+            
+            articles.forEach((article, index) => {
+                // サイズパターンを循環させる
+                const sizeClass = sizePatterns[index % sizePatterns.length];
+                
+                // タイルの要素を作成
+                const tile = document.createElement('div');
+                tile.className = `tile ${sizeClass}`;
+                tile.dataset.index = index;
+                tile.addEventListener('click', () => openModal(article));
+                
+                // タイトル
+                const title = document.createElement('h2');
+                title.className = 'project-title';
+                title.textContent = article.タイトル || '無題';
+                
+                // 本文
+                const content = document.createElement('p');
+                content.className = 'project-content';
+                content.textContent = article.本文 || '';
+                
+                // タグ
+                const tags = document.createElement('div');
+                tags.className = 'tags';
+                
+                // タグを分割（カンマ区切りを想定）
+                if (article.タグ) {
+                    const tagList = article.タグ.split(',').map(tag => tag.trim());
+                    tagList.forEach(tag => {
+                        const span = document.createElement('span');
+                        span.textContent = tag;
+                        tags.appendChild(span);
+                    });
+                }
+                
+                // 日付
+                const date = document.createElement('div');
+                date.className = 'date';
+                if (article.日付) {
+                    // 日付のフォーマット（YYYY.MM.DD形式に変換）
+                    let formattedDate = article.日付;
+                    if (article.日付 instanceof Date) {
+                        const d = article.日付;
+                        formattedDate = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+                    } else if (typeof article.日付 === 'string') {
+                        // すでに文字列形式の場合はそのまま使用
+                        formattedDate = article.日付;
+                    }
+                    date.textContent = formattedDate;
+                }
+                
+                // 要素を追加
+                tile.appendChild(title);
+                tile.appendChild(content);
+                tile.appendChild(tags);
+                tile.appendChild(date);
+                
+                // グリッドに追加
+                grid.appendChild(tile);
+            });
+            
+            // 検索結果がない場合のメッセージ
+            if (articles.length === 0) {
+                const noResults = document.createElement('div');
+                noResults.style.gridColumn = 'span 12';
+                noResults.style.padding = '50px';
+                noResults.style.textAlign = 'center';
+                noResults.style.color = '#999';
+                noResults.textContent = '該当する記事がありません';
+                grid.appendChild(noResults);
+            }
+        }
+        
+        // 検索処理
+        function handleSearch() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            
+            if (!allArticles || allArticles.length === 0) return;
+            
+            if (searchTerm === '') {
+                // 検索語がなければ全記事表示
+                renderArticles(allArticles);
+                return;
+            }
+            
+            // 検索条件に合致する記事をフィルタリング
+            const filteredArticles = allArticles.filter(article => {
+                const title = (article.タイトル || '').toLowerCase();
+                const content = (article.本文 || '').toLowerCase();
+                const tags = (article.タグ || '').toLowerCase();
+                
+                return title.includes(searchTerm) || 
+                       content.includes(searchTerm) || 
+                       tags.includes(searchTerm);
+            });
+            
+            // フィルタリングした記事を表示
+            renderArticles(filteredArticles);
+        }
+        
+        // モーダルを開く
+        function openModal(article) {
+            document.getElementById('modal-title').textContent = article.タイトル || '無題';
+            document.getElementById('modal-body').textContent = article.本文 || '';
+            
+            // タグを設定
+            const tagsContainer = document.getElementById('modal-tags');
+            tagsContainer.innerHTML = '';
+            if (article.タグ) {
+                const tagList = article.タグ.split(',').map(tag => tag.trim());
+                tagList.forEach(tag => {
+                    const span = document.createElement('span');
+                    span.textContent = tag;
+                    tagsContainer.appendChild(span);
+                });
+            }
+            
+            // 日付を設定
+            const dateElement = document.getElementById('modal-date');
+            if (article.日付) {
+                // 日付のフォーマット
+                let formattedDate = article.日付;
+                if (article.日付 instanceof Date) {
+                    const d = article.日付;
+                    formattedDate = `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+                } else if (typeof article.日付 === 'string') {
+                    formattedDate = article.日付;
+                }
+                dateElement.textContent = formattedDate;
+            } else {
+                dateElement.textContent = '';
+            }
+            
+            // モーダルを表示
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+        }
+        
+        // モーダルを閉じる
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
+<!-- End of index.html -->
