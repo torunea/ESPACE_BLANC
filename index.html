@@ -137,40 +137,12 @@
     </div>
 
     <script>
-        // パスワードを外部ファイルから読み込む
-        let correctPassword = "";
-        const PASSWORD_FILE_URL = "https://drive.google.com/file/d/1gz4ro-SYHdQnpYc_2N6SPUANp4bB_AdH/view?usp=sharing"; // GoogleドライブのファイルID
-        
-        // ページ読み込み時にパスワードファイルを取得
-        window.addEventListener('DOMContentLoaded', fetchPassword);
-        
-        // パスワードファイルを取得する関数
-        async function fetchPassword() {
-            try {
-                const response = await fetch(PASSWORD_FILE_URL);
-                if (!response.ok) {
-                    throw new Error('パスワードファイルが見つかりません');
-                }
-                const data = await response.text();
-                // ファイルの内容をトリムして格納（余計な空白や改行を削除）
-                correctPassword = data.trim();
-                console.log("パスワードファイルの読み込みに成功しました");
-            } catch (error) {
-                console.error('パスワードファイル読み込みエラー:', error);
-                document.querySelector('.login-subtitle').textContent = 
-                    'エラー: パスワードファイルの読み込みに失敗しました。管理者にお問い合わせください。';
-            }
-        }
+        // パスワードを直接指定（実際に使用する場合は変更してください）
+        const correctPassword = "123456";
         
         function checkPassword() {
             const passwordInput = document.getElementById("passwordInput").value;
             const errorMessage = document.getElementById("errorMessage");
-            
-            if (!correctPassword) {
-                errorMessage.textContent = "システムエラー: パスワードファイルが読み込まれていません";
-                errorMessage.style.display = "block";
-                return;
-            }
             
             if (passwordInput === correctPassword) {
                 // パスワードが正しい場合
@@ -180,7 +152,6 @@
                 errorMessage.style.display = "none";
             } else {
                 // パスワードが間違っている場合
-                errorMessage.textContent = "パスワードが間違っています";
                 errorMessage.style.display = "block";
                 document.getElementById("passwordInput").value = "";
             }
