@@ -3,11 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>パスワード保護ページ</title>
+    <title>ESPACE BLANC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+            font-weight: 300;
+        }
+        
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.4;
+            padding: 20px;
+            font-size: 14px;
+            background-color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -15,90 +29,148 @@
             margin: 0;
         }
         
-        .container {
-            max-width: 500px;
-            padding: 30px;
+        /* ヘッダー */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding: 15px 20px;
+            background-color: white;
+            z-index: 1000;
+        }
+        
+        .site-title {
+            font-weight: 100;
+            font-size: 18px;
+            letter-spacing: 0.8px;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            padding: 40px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            border: 1px solid #eee;
             text-align: center;
+            width: 90%;
         }
         
-        .login-form {
-            display: block;
+        .login-title {
+            font-size: 18px;
+            font-weight: 100;
+            margin-bottom: 25px;
+            letter-spacing: 0.8px;
         }
         
-        .content {
-            display: none;
+        .login-subtitle {
+            font-size: 13px;
+            margin-bottom: 25px;
+            color: #666;
         }
         
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        
-        input {
+        input[type="password"] {
             width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
+            padding: 10px;
+            margin: 10px 0 20px;
+            border: 1px solid #eee;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        input[type="password"]:focus {
+            border-color: #ddd;
         }
         
         button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            margin: 15px 0;
-            border-radius: 4px;
+            background-color: white;
+            color: #333;
+            border: 1px solid #eee;
+            padding: 10px 20px;
+            font-size: 13px;
             cursor: pointer;
-            font-size: 16px;
+            transition: all 0.2s;
             width: 100%;
-            transition: background-color 0.3s;
         }
         
         button:hover {
-            background-color: #45a049;
+            background-color: #f9f9f9;
         }
         
         .error-message {
-            color: red;
+            color: #d9534f;
+            font-size: 12px;
             margin-top: 10px;
+            margin-bottom: 15px;
             display: none;
+        }
+        
+        /* レスポンシブデザイン */
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 10px 15px;
+            }
+            
+            .login-container {
+                padding: 25px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="login-form" id="loginForm">
-            <h1>パスワード保護ページ</h1>
-            <p>このページを閲覧するにはパスワードが必要です</p>
-            
-            <input type="password" id="passwordInput" placeholder="パスワードを入力してください">
-            <div class="error-message" id="errorMessage">パスワードが間違っています</div>
-            <button onclick="checkPassword()">アクセス</button>
-        </div>
+    <header>
+        <h1 class="site-title">ESPACE BLANC</h1>
+    </header>
+    
+    <div class="login-container">
+        <h2 class="login-title">アクセス制限</h2>
+        <p class="login-subtitle">このページを閲覧するにはパスワードが必要です</p>
         
-        <div class="content" id="protectedContent">
-            <h1>保護されたコンテンツ</h1>
-            <p>これはパスワードで保護されたコンテンツです。この部分にあなたの実際のコンテンツを入れてください。</p>
-            <p>ここに記事、画像、リンクなど必要なコンテンツを追加できます。</p>
-            <button onclick="logout()">ログアウト</button>
-        </div>
+        <input type="password" id="passwordInput" placeholder="パスワードを入力してください">
+        <div class="error-message" id="errorMessage">パスワードが間違っています</div>
+        <button onclick="checkPassword()">アクセス</button>
     </div>
 
     <script>
-        // パスワードをここで設定します。実際に使用する場合は変更してください
-        const correctPassword = "secretpass123";
+        // パスワードを外部ファイルから読み込む
+        let correctPassword = "";
+        const PASSWORD_FILE_URL = "https://drive.google.com/uc?export=download&id=1gz4ro-SYHdQnpYc_2N6SPUANp4bB_AdH/view?usp=sharing"; // GoogleドライブのファイルID
+        
+        // ページ読み込み時にパスワードファイルを取得
+        window.addEventListener('DOMContentLoaded', fetchPassword);
+        
+        // パスワードファイルを取得する関数
+        async function fetchPassword() {
+            try {
+                const response = await fetch(PASSWORD_FILE_URL);
+                if (!response.ok) {
+                    throw new Error('パスワードファイルが見つかりません');
+                }
+                const data = await response.text();
+                // ファイルの内容をトリムして格納（余計な空白や改行を削除）
+                correctPassword = data.trim();
+                console.log("パスワードファイルの読み込みに成功しました");
+            } catch (error) {
+                console.error('パスワードファイル読み込みエラー:', error);
+                document.querySelector('.login-subtitle').textContent = 
+                    'エラー: パスワードファイルの読み込みに失敗しました。管理者にお問い合わせください。';
+            }
+        }
         
         function checkPassword() {
             const passwordInput = document.getElementById("passwordInput").value;
-            const loginForm = document.getElementById("loginForm");
-            const protectedContent = document.getElementById("protectedContent");
             const errorMessage = document.getElementById("errorMessage");
+            
+            if (!correctPassword) {
+                errorMessage.textContent = "システムエラー: パスワードファイルが読み込まれていません";
+                errorMessage.style.display = "block";
+                return;
+            }
             
             if (passwordInput === correctPassword) {
                 // パスワードが正しい場合
@@ -108,34 +180,11 @@
                 errorMessage.style.display = "none";
             } else {
                 // パスワードが間違っている場合
+                errorMessage.textContent = "パスワードが間違っています";
                 errorMessage.style.display = "block";
                 document.getElementById("passwordInput").value = "";
             }
         }
-        
-        function logout() {
-            const loginForm = document.getElementById("loginForm");
-            const protectedContent = document.getElementById("protectedContent");
-            
-            // 認証状態をクリア
-            sessionStorage.removeItem("authenticated");
-            
-            // ログインフォームを再表示
-            loginForm.style.display = "block";
-            protectedContent.style.display = "none";
-        }
-        
-        // ページ読み込み時に認証状態をチェック
-        window.onload = function() {
-            const authenticated = sessionStorage.getItem("authenticated");
-            const loginForm = document.getElementById("loginForm");
-            const protectedContent = document.getElementById("protectedContent");
-            
-            if (authenticated === "true") {
-                loginForm.style.display = "none";
-                protectedContent.style.display = "block";
-            }
-        };
         
         // Enterキーでログインできるようにする
         document.getElementById("passwordInput").addEventListener("keyup", function(event) {
