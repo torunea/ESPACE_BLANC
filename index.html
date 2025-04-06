@@ -1,168 +1,422 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESPACE BLANC</title>
+    <!-- 既存のヘッダー部分はそのまま -->
+    <title>esseys</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK の追加 -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+    
+    <!-- 既存のスタイル部分はそのまま -->
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
-            font-weight: 300;
-        }
-        
-        body {
-            color: #333;
-            line-height: 1.4;
-            padding: 20px;
-            font-size: 14px;
-            background-color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        
-        /* ヘッダー */
-        header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #eee;
-            padding: 15px 20px;
-            background-color: white;
-            z-index: 1000;
-        }
-        
-        .site-title {
-            font-weight: 100;
-            font-size: 18px;
-            letter-spacing: 0.8px;
-        }
-        
-        .login-container {
-            max-width: 400px;
-            padding: 40px;
-            background: white;
-            border: 1px solid #eee;
-            text-align: center;
-            width: 90%;
-        }
-        
-        .login-title {
-            font-size: 18px;
-            font-weight: 100;
-            margin-bottom: 25px;
-            letter-spacing: 0.8px;
-        }
-        
-        .login-subtitle {
-            font-size: 13px;
-            margin-bottom: 25px;
-            color: #666;
-        }
-        
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0 20px;
-            border: 1px solid #eee;
-            font-size: 14px;
-            outline: none;
-        }
-        
-        input[type="password"]:focus {
-            border-color: #ddd;
-        }
-        
-        button {
-            background-color: white;
-            color: #333;
-            border: 1px solid #eee;
-            padding: 10px 20px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: 100%;
-        }
-        
-        button:hover {
-            background-color: #f9f9f9;
-        }
-        
-        .error-message {
-            color: #d9534f;
-            font-size: 12px;
-            margin-top: 10px;
-            margin-bottom: 15px;
-            display: none;
-        }
-        
-        /* レスポンシブデザイン */
-        @media (max-width: 768px) {
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 10px 15px;
-            }
-            
-            .login-container {
-                padding: 25px;
-            }
-        }
+      /* 既存のスタイル */
+      
+      /* 投稿フォームのスタイルを追加 */
+      .post-form-container {
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          z-index: 1000;
+      }
+      
+      .post-button {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          background-color: #333;
+          color: white;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      }
+      
+      .post-form {
+          display: none;
+          background: white;
+          padding: 20px;
+          border-radius: 5px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+          margin-bottom: 10px;
+          width: 300px;
+      }
+      
+      .post-form.active {
+          display: block;
+      }
+      
+      .form-group {
+          margin-bottom: 15px;
+      }
+      
+      .form-group label {
+          display: block;
+          margin-bottom: 5px;
+          font-size: 12px;
+      }
+      
+      .form-group input, 
+      .form-group textarea {
+          width: 100%;
+          padding: 8px;
+          border: 1px solid #eee;
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 300;
+      }
+      
+      .form-group textarea {
+          min-height: 100px;
+          resize: vertical;
+      }
+      
+      .form-buttons {
+          display: flex;
+          justify-content: flex-end;
+      }
+      
+      .form-buttons button {
+          padding: 8px 12px;
+          background: #f5f5f5;
+          border: 1px solid #eee;
+          margin-left: 10px;
+          cursor: pointer;
+          font-size: 12px;
+          font-family: inherit;
+          font-weight: 300;
+      }
+      
+      .form-buttons button.submit {
+          background: #333;
+          color: white;
+      }
     </style>
 </head>
 <body>
     <header>
-        <h1 class="site-title">ESPACE BLANC</h1>
+        <h1 class="site-title">esseys</h1>
+        <div class="right-nav">
+            <input type="text" class="search-box" id="search-input" placeholder="search...">
+        </div>
     </header>
     
-    <div class="login-container">
-        <h2 class="login-title">アクセス制限</h2>
-        <p class="login-subtitle">このページを閲覧するにはパスワードが必要です</p>
-        
-        <input type="password" id="passwordInput" placeholder="パスワードを入力してください">
-        <div class="error-message" id="errorMessage">パスワードが間違っています</div>
-        <button onclick="checkPassword()">アクセス</button>
+    <div class="mosaic-grid" id="content-grid">
+        <div id="loading-message" style="grid-column: span 12; text-align: center; padding: 50px; color: #999;">
+            データを読み込んでいます...
+        </div>
+    </div>
+    
+    <!-- 投稿フォーム -->
+    <div class="post-form-container">
+        <div class="post-form" id="post-form">
+            <div class="form-group">
+                <label for="post-title">タイトル</label>
+                <input type="text" id="post-title" placeholder="タイトルを入力">
+            </div>
+            <div class="form-group">
+                <label for="post-content">本文</label>
+                <textarea id="post-content" placeholder="本文を入力"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="post-tags">タグ (カンマ区切り)</label>
+                <input type="text" id="post-tags" placeholder="タグ1, タグ2, タグ3">
+            </div>
+            <div class="form-buttons">
+                <button id="cancel-post">キャンセル</button>
+                <button id="submit-post" class="submit">投稿</button>
+            </div>
+        </div>
+        <button class="post-button" id="show-post-form">+</button>
+    </div>
+    
+    <!-- モーダルポップアップ (既存のもの) -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <button class="modal-close" id="modal-close">&times;</button>
+            <h2 class="modal-title" id="modal-title"></h2>
+            <div class="modal-body" id="modal-body"></div>
+            <div class="modal-tags" id="modal-tags"></div>
+            <div class="modal-date" id="modal-date"></div>
+        </div>
     </div>
 
     <script>
-        // パスワードを直接指定（実際に使用する場合は変更してください）
-        const correctPassword = "123456";
+        // Firebase の設定
+        const firebaseConfig = {
+            // Firebase Console からコピーした設定を貼り付け
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
         
-        function checkPassword() {
-            const passwordInput = document.getElementById("passwordInput").value;
-            const errorMessage = document.getElementById("errorMessage");
+        // Firebase の初期化
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        // グローバル変数
+        let allArticles = [];
+        
+        // DOMが読み込まれた後に実行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 記事をロード
+            loadArticles();
             
-            if (passwordInput === correctPassword) {
-                // パスワードが正しい場合
-                // protected ディレクトリにリダイレクト
-                sessionStorage.setItem("authenticated", "true");
-                window.location.href = "protected/"; // protected ディレクトリへリダイレクト
-                errorMessage.style.display = "none";
-            } else {
-                // パスワードが間違っている場合
-                errorMessage.style.display = "block";
-                document.getElementById("passwordInput").value = "";
+            // 検索機能
+            document.getElementById('search-input').addEventListener('input', handleSearch);
+            
+            // モーダル閉じるボタン
+            document.getElementById('modal-close').addEventListener('click', closeModal);
+            
+            // モーダル外側クリックで閉じる
+            document.getElementById('modal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal();
+                }
+            });
+            
+            // 投稿フォームの表示/非表示
+            document.getElementById('show-post-form').addEventListener('click', function() {
+                document.getElementById('post-form').classList.toggle('active');
+            });
+            
+            // 投稿キャンセル
+            document.getElementById('cancel-post').addEventListener('click', function() {
+                document.getElementById('post-form').classList.remove('active');
+                clearPostForm();
+            });
+            
+            // 投稿送信
+            document.getElementById('submit-post').addEventListener('click', submitPost);
+        });
+        
+        // Firestore から記事をロードする関数
+        function loadArticles() {
+            document.getElementById('loading-message').style.display = 'block';
+            
+            db.collection("articles")
+                .orderBy("日付", "desc")
+                .get()
+                .then((querySnapshot) => {
+                    // 読み込み中メッセージを非表示
+                    document.getElementById('loading-message').style.display = 'none';
+                    
+                    // データを配列に格納
+                    allArticles = [];
+                    querySnapshot.forEach((doc) => {
+                        const article = doc.data();
+                        article.id = doc.id; // ドキュメントIDを保存（後で編集/削除に使用可能）
+                        allArticles.push(article);
+                    });
+                    
+                    // 画面に表示
+                    renderArticles(allArticles);
+                })
+                .catch((error) => {
+                    console.error("記事の読み込みエラー: ", error);
+                    document.getElementById('loading-message').innerHTML = 
+                        `<p>データの読み込みに失敗しました: ${error.message}</p>`;
+                });
+        }
+        
+        // 新しい記事を投稿する関数
+        function submitPost() {
+            const titleInput = document.getElementById('post-title');
+            const contentInput = document.getElementById('post-content');
+            const tagsInput = document.getElementById('post-tags');
+            
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+            const tags = tagsInput.value.trim();
+            
+            if (!title || !content) {
+                alert('タイトルと本文は必須です');
+                return;
+            }
+            
+            // 現在の日付を YYYY.MM.DD 形式で取得
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const formattedDate = `${yyyy}.${mm}.${dd}`;
+            
+            // Firestore に保存
+            db.collection("articles").add({
+                タイトル: title,
+                本文: content,
+                タグ: tags,
+                日付: formattedDate
+            })
+            .then(() => {
+                // フォームをクリアして閉じる
+                clearPostForm();
+                document.getElementById('post-form').classList.remove('active');
+                
+                // 記事を再読み込み
+                loadArticles();
+            })
+            .catch((error) => {
+                console.error("投稿エラー: ", error);
+                alert("投稿中にエラーが発生しました。もう一度お試しください。");
+            });
+        }
+        
+        // 投稿フォームをクリアする関数
+        function clearPostForm() {
+            document.getElementById('post-title').value = '';
+            document.getElementById('post-content').value = '';
+            document.getElementById('post-tags').value = '';
+        }
+        
+        // 記事を表示する関数 (既存の関数を修正)
+        function renderArticles(articles) {
+            const grid = document.getElementById('content-grid');
+            // ローディングメッセージ以外の内容をクリア
+            Array.from(grid.children).forEach(child => {
+                if (child.id !== 'loading-message') {
+                    grid.removeChild(child);
+                }
+            });
+            
+            // サイズのパターン
+            const sizePatterns = ['size-2', 'size-3', 'size-1', 'size-4', 'size-5', 'size-3', 'size-6', 'size-1', 'size-2', 'size-4'];
+            
+            articles.forEach((article, index) => {
+                // サイズパターンを循環させる
+                const sizeClass = sizePatterns[index % sizePatterns.length];
+                
+                // タイルの要素を作成
+                const tile = document.createElement('div');
+                tile.className = `tile ${sizeClass}`;
+                tile.dataset.id = article.id;
+                tile.addEventListener('click', () => openModal(article));
+                
+                // タイトル
+                const title = document.createElement('h2');
+                title.className = 'project-title';
+                title.textContent = article.タイトル || '無題';
+                
+                // 本文
+                const content = document.createElement('p');
+                content.className = 'project-content';
+                content.textContent = article.本文 || '';
+                
+                // タグ
+                const tags = document.createElement('div');
+                tags.className = 'tags';
+                
+                // タグを分割（カンマ区切りを想定）
+                if (article.タグ) {
+                    const tagList = article.タグ.split(',').map(tag => tag.trim());
+                    tagList.forEach(tag => {
+                        if (tag) {
+                            const span = document.createElement('span');
+                            span.textContent = tag;
+                            tags.appendChild(span);
+                        }
+                    });
+                }
+                
+                // 日付
+                const date = document.createElement('div');
+                date.className = 'date';
+                if (article.日付) {
+                    date.textContent = article.日付;
+                }
+                
+                // 要素を追加
+                tile.appendChild(title);
+                tile.appendChild(content);
+                tile.appendChild(tags);
+                tile.appendChild(date);
+                
+                // グリッドに追加
+                grid.appendChild(tile);
+            });
+            
+            // 検索結果がない場合のメッセージ
+            if (articles.length === 0) {
+                const noResults = document.createElement('div');
+                noResults.style.gridColumn = 'span 12';
+                noResults.style.padding = '50px';
+                noResults.style.textAlign = 'center';
+                noResults.style.color = '#999';
+                noResults.textContent = '該当する記事がありません';
+                grid.appendChild(noResults);
             }
         }
         
-        // Enterキーでログインできるようにする
-        document.getElementById("passwordInput").addEventListener("keyup", function(event) {
-            if (event.key === "Enter") {
-                checkPassword();
+        // 検索処理
+        function handleSearch() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            
+            if (!allArticles || allArticles.length === 0) return;
+            
+            if (searchTerm === '') {
+                // 検索語がなければ全記事表示
+                renderArticles(allArticles);
+                return;
             }
-        });
+            
+            // 検索条件に合致する記事をフィルタリング
+            const filteredArticles = allArticles.filter(article => {
+                const title = (article.タイトル || '').toLowerCase();
+                const content = (article.本文 || '').toLowerCase();
+                const tags = (article.タグ || '').toLowerCase();
+                
+                return title.includes(searchTerm) || 
+                       content.includes(searchTerm) || 
+                       tags.includes(searchTerm);
+            });
+            
+            // フィルタリングした記事を表示
+            renderArticles(filteredArticles);
+        }
+        
+        // モーダルを開く
+        function openModal(article) {
+            document.getElementById('modal-title').textContent = article.タイトル || '無題';
+            document.getElementById('modal-body').textContent = article.本文 || '';
+            
+            // タグを設定
+            const tagsContainer = document.getElementById('modal-tags');
+            tagsContainer.innerHTML = '';
+            if (article.タグ) {
+                const tagList = article.タグ.split(',').map(tag => tag.trim());
+                tagList.forEach(tag => {
+                    if (tag) {
+                        const span = document.createElement('span');
+                        span.textContent = tag;
+                        tagsContainer.appendChild(span);
+                    }
+                });
+            }
+            
+            // 日付を設定
+            const dateElement = document.getElementById('modal-date');
+            if (article.日付) {
+                dateElement.textContent = article.日付;
+            } else {
+                dateElement.textContent = '';
+            }
+            
+            // モーダルを表示
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+        }
+        
+        // モーダルを閉じる
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
     </script>
 </body>
 </html>
